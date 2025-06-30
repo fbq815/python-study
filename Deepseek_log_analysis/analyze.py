@@ -1,11 +1,17 @@
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-from together import Together
-from config import TOGETHER_API_KEY
+# from together import Together
+# from config import TOGETHER_API_KEY
+from openai import OpenAI
+from config import OPENAI_API_KEY
 import datetime
 
-client = Together(api_key=TOGETHER_API_KEY)
+# client = Together(api_key=TOGETHER_API_KEY)
+client = OpenAI(
+    api_key=OPENAI_API_KEY,
+    base_url="https://api.deepseek.com/v1"
+)
 
 def find_subdirectories(base_url):
     print(f"访问目录: {base_url}")
@@ -26,6 +32,7 @@ def fetch_log_from_url(url):
     resp.raise_for_status()
     return resp.text
 
+
 def analyze_log(log_text):
     timestamp = datetime.datetime.now().isoformat()
     prompt = f"""
@@ -42,13 +49,19 @@ case名称的具体拼接规则是：需要找到debug.log文件中的第二个"
 {log_text}
 """
     print("开始调用API分析日志...")
+    # response = client.chat.completions.create(
+    #     model="deepseek-ai/DeepSeek-V3",
+    #     messages=[{"role": "user", "content": prompt}],
+    #     temperature=0.2,
+    # )
     response = client.chat.completions.create(
-        model="deepseek-ai/DeepSeek-V3",
+        model="deepseek-chat",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
     )
     print("API调用完成")
     return response.choices[0].message.content
+
 
 if __name__ == "__main__":
     base_url = "http://10.0.136.47/bfu/s390x/functional/RHEL9.7/CTC1-1/test-results"
